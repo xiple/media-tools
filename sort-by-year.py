@@ -104,7 +104,7 @@ def main(rootpath, recursive, month):
 
                 logger.info(f"Moved {filepath} to {targetDirectoryPath}")
             except piexif.InvalidImageDataError:
-                logger.warning("Invalid image data, skipping")
+                logger.warning(f"{filename} : invalid image data, skipping")
                 continue
 
     logger.info("Finished processing files")
