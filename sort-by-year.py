@@ -25,7 +25,7 @@ def filter_filepaths(filepaths, allowed_ext):
     return [(fp, fn) for fp, fn in filepaths if os.path.splitext(fn)[-1] in allowed_ext]
 
 
-def main(rootpath, recursive):
+def main(rootpath, recursive, month):
     if not os.path.exists(rootpath):
         raise FileNotFoundError("Path specified does not exist")
 
@@ -54,8 +54,12 @@ def main(rootpath, recursive):
                 yearOriginal=dateTimeOriginal.decode('utf-8')[:4]
                 targetDirectory=os.path.join(rootpath, yearOriginal)
 
+                if month:
+                    monthOriginal=dateTimeOriginal.decode('utf-8')[5:7]
+                    targetDirectory=os.path.join(targetDirectory, monthOriginal)
+
                 if not os.path.exists(targetDirectory):
-                    os.mkdir(targetDirectory)
+                    os.makedirs(targetDirectory, exist_ok=True)
                     logger.info(f"Created {targetDirectory}")
             else:
                 targetDirectory=os.path.join(rootpath, "Unknown")
@@ -84,6 +88,13 @@ if __name__ == "__main__":
         action="store_true",
         help="Recursively process media",
     )
+    parser.add_argument(
+        "-m",
+        "--month",
+        default=False,
+        action="store_true",
+        help="Create month directories along with year directories",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -91,4 +102,4 @@ if __name__ == "__main__":
     )
     logger = logging.getLogger("sort-by-year")
 
-    main(args.rootpath, args.recursive)
+    main(args.rootpath, args.recursive, args.month)
