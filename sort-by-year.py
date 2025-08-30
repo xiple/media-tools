@@ -1,8 +1,15 @@
 import logging
 import argparse
 import os
+import re
 
 import piexif
+
+img_filename_regex = re.compile(r"IMG-\d{8}-WA\d{4}\..+")
+vid_filename_regex = re.compile(r"VID-\d{8}-WA\d{4}\..+")
+
+def get_date(filename):
+    return filename.split("-")[1][:7]
 
 
 def get_filepaths(path, recursive):
@@ -25,6 +32,14 @@ def filter_filepaths(filepaths, allowed_ext):
     return [(fp, fn) for fp, fn in filepaths if os.path.splitext(fn)[-1] in allowed_ext]
 
 
+def is_whatsapp_img(filename):
+    return bool(img_filename_regex.match(filename))
+
+
+def is_whatsapp_vid(filename):
+    return bool(vid_filename_regex.match(filename))
+
+
 def main(rootpath, recursive, month):
     if not os.path.exists(rootpath):
         raise FileNotFoundError("Path specified does not exist")
@@ -36,7 +51,7 @@ def main(rootpath, recursive, month):
     filepaths = get_filepaths(rootpath, recursive)
     logger.info(f"Total files: {len(filepaths)}")
 
-    allowed_extensions = set([".jpg", ".jpeg"])
+    allowed_extensions = set([".jpg", ".jpeg", ".mp4", ".3gp"])
     logger.info(f"Filtering for valid file extensions: {allowed_extensions}")
     filepaths = filter_filepaths(filepaths, allowed_ext=allowed_extensions)
     num_files = len(filepaths)
@@ -44,36 +59,53 @@ def main(rootpath, recursive, month):
 
     logger.info("Begin processing files")
     for path, filename in filepaths:
-        filepath=os.path.join(path, filename)
-        targetDirectoryPath=""
+        filepath = os.path.join(path, filename)
+        targetDirectoryPath = ""
 
-        try:
-            exif_dict = piexif.load(filepath)
-            dateTimeOriginal=exif_dict['Exif'].get(piexif.ExifIFD.DateTimeOriginal)
-            if dateTimeOriginal:
-                yearOriginal=dateTimeOriginal.decode('utf-8')[:4]
-                targetDirectory=os.path.join(rootpath, yearOriginal)
+        if is_whatsapp_img(filename) or is_whatsapp_vid(filename):
+            filenameYear = get_date(filename)[:4]
+            filenameMonth = get_date(filename)[4:6]
 
-                if month:
-                    monthOriginal=dateTimeOriginal.decode('utf-8')[5:7]
-                    targetDirectory=os.path.join(targetDirectory, monthOriginal)
+            targetDirectory = os.path.join(rootpath, filenameYear)
+            if month:
+                targetDirectory = os.path.join(targetDirectory, filenameMonth)
 
-                if not os.path.exists(targetDirectory):
-                    os.makedirs(targetDirectory, exist_ok=True)
-                    logger.info(f"Created {targetDirectory}")
-            else:
-                targetDirectory=os.path.join(rootpath, "Unknown")
-                if not os.path.exists(targetDirectory):
-                    os.mkdir(targetDirectory)
-                    logger.info(f"Created {targetDirectory}")
+            if not os.path.exists(targetDirectory):
+                os.makedirs(targetDirectory, exist_ok=True)
+                logger.info(f"Created {targetDirectory}")
 
-            targetDirectoryPath=os.path.join(targetDirectory, filename)
+            targetDirectoryPath = os.path.join(targetDirectory, filename)
             os.rename(filepath, targetDirectoryPath)
 
             logger.info(f"Moved {filepath} to {targetDirectoryPath}")
-        except piexif.InvalidImageDataError:
-            logger.warning("Invalid image data, skipping")
-            continue
+        else:
+            try:
+                exif_dict = piexif.load(filepath)
+                dateTimeOriginal = exif_dict["Exif"].get(piexif.ExifIFD.DateTimeOriginal)
+                if dateTimeOriginal:
+                    yearOriginal = dateTimeOriginal.decode("utf-8")[:4]
+                    targetDirectory = os.path.join(rootpath, yearOriginal)
+
+                    if month:
+                        monthOriginal = dateTimeOriginal.decode("utf-8")[5:7]
+                        targetDirectory = os.path.join(targetDirectory, monthOriginal)
+
+                    if not os.path.exists(targetDirectory):
+                        os.makedirs(targetDirectory, exist_ok=True)
+                        logger.info(f"Created {targetDirectory}")
+                else:
+                    targetDirectory = os.path.join(rootpath, "Unknown")
+                    if not os.path.exists(targetDirectory):
+                        os.mkdir(targetDirectory)
+                        logger.info(f"Created {targetDirectory}")
+
+                targetDirectoryPath = os.path.join(targetDirectory, filename)
+                os.rename(filepath, targetDirectoryPath)
+
+                logger.info(f"Moved {filepath} to {targetDirectoryPath}")
+            except piexif.InvalidImageDataError:
+                logger.warning("Invalid image data, skipping")
+                continue
 
     logger.info("Finished processing files")
 
