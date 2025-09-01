@@ -4,6 +4,12 @@ import os
 import hashlib
 import binascii
 
+def check_valid_directory(dir):
+    if not os.path.exists(dir):
+        raise FileNotFoundError(f"Path specified for '{dir}' does not exist")
+
+    if not os.path.isdir(dir):
+        raise NotADirectoryError(f"'{dir}' is not a directory")
 
 def checksum(filepath, hash_function="md5"):
     with open(filepath, "rb") as f:
@@ -23,6 +29,9 @@ def get_filepaths(path):
 
 
 def main(src_dir, tgt_dir):
+    check_valid_directory(src_dir)
+    check_valid_directory(tgt_dir) 
+
     src_filepaths = get_filepaths(src_dir)
     tgt_filepaths = get_filepaths(tgt_dir)
     for src_path, src_filename in src_filepaths:
