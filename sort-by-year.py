@@ -7,7 +7,6 @@ import piexif
 
 img_filename_regex = re.compile(r"IMG-\d{8}-WA\d{4}\..+")
 vid_filename_regex = re.compile(r"VID-\d{8}-WA\d{4}\..+")
-
 def get_date(filename):
     return filename.split("-")[1][:7]
 
@@ -111,7 +110,7 @@ def main(rootpath, recursive, month):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=("TODOTODO"))
+    parser = argparse.ArgumentParser(description=("Stow pictures in directories 'year' based on picture exif metadata or whatsapp filename date"))
     parser.add_argument("rootpath", type=str, help="Path to pictures folder")
     parser.add_argument(
         "-r",
