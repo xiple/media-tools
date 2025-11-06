@@ -80,3 +80,18 @@ options:
   -r, --recursive  Recursively process media
   -m, --month      Create month directories along with year directories
 ```
+
+### Find files from source directory in target directory
+
+```text
+usage: compare-dir.py [-h] src_dir tgt_dir
+
+Find files from source directory in target directory (based on file's checksum)
+
+positional arguments:
+  src_dir     Path to source directory
+  tgt_dir     Path to target directory
+
+options:
+  -h, --help  show this help message and exit
+```
