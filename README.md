@@ -1,6 +1,8 @@
-# whatsapp-media-tools
+# media-tools
 
-Python scripts to manage WhatsApp media backups for archival purposes.
+Python scripts for pictures archival purposes.
+
+Fork of [Will Ho](https://github.com/ikaruswill) `whatsapp-media-tools` repository (manage WhatsApp media backups for archival purposes).
 
 ## Prerequisites
 
@@ -28,7 +30,7 @@ deactivate
 
 ## Usage
 
-### Restoring exif dates
+### Restoring exif dates on WhatsApp media files
 
 ```text
 usage: restore-exif.py [-h] [-r] [-m] path
